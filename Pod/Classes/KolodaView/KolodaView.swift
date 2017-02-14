@@ -609,6 +609,44 @@ open class KolodaView: UIView, DraggableCardDelegate {
         }
     }
     
+    private var batchCommits:Bool = false
+    private var batchInitialCountOfCards:Int = 0
+    private var batchDeltaCount:Int = 0
+    
+    public func beginUpdates() {
+        
+        assert(
+            batchCommits == false,
+            "Unbalanced call to beginUpdates, all beginUpdates calls must be followed by a call to endUpdates"
+        )
+        
+        batchInitialCountOfCards = countOfCards
+        batchDeltaCount = 0
+        batchCommits = true
+        
+        CATransaction.begin()
+    }
+    
+    public func endUpdates() {
+        
+        assert(
+            batchCommits == true,
+            "Unbalanced call to endUpdates, all endUpdates calls must follow a call to beginUpdates"
+        )
+        
+        countOfCards = dataSource?.kolodaNumberOfCards(self) ?? 0
+        
+        assert(
+            batchInitialCountOfCards + batchDeltaCount == countOfCards,
+            "Cards count after updates is not equal to data source count"
+        )
+        
+        batchCommits = false
+        batchDeltaCount = 0
+        
+        CATransaction.commit()
+    }
+    
     public func insertCardAtIndexRange(_ indexRange: CountableRange<Int>, animated: Bool = true) {
         guard let dataSource = dataSource else {
             return
@@ -632,10 +670,14 @@ open class KolodaView: UIView, DraggableCardDelegate {
             )
         }
         
-        assert(
-            currentItemsCount + indexRange.count == countOfCards,
-            "Cards count after update is not equal to data source count"
-        )
+        if !batchCommits {
+            assert(
+                currentItemsCount + indexRange.count == countOfCards,
+                "Cards count after update is not equal to data source count"
+            )
+        } else {
+            batchDeltaCount += indexRange.count
+        }
     }
     
     // MARK: Cards managing - Deletion
@@ -672,10 +714,14 @@ open class KolodaView: UIView, DraggableCardDelegate {
         }
         animating = false
         
-        assert(
-            currentItemsCount - indexRange.count == countOfCards,
-            "Cards count after update is not equal to data source count"
-        )
+        if !batchCommits {
+            assert(
+                currentItemsCount - indexRange.count == countOfCards,
+                "Cards count after update is not equal to data source count"
+            )
+        } else {
+            batchDeltaCount -= indexRange.count
+        }
     }
     
     // MARK: Cards managing - Reloading
