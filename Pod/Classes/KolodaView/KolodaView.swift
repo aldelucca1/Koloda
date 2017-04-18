@@ -632,20 +632,22 @@ open class KolodaView: UIView, DraggableCardDelegate {
         }
     }
     
-    private var batchCommits:Bool = false
+    // MARK: Cards managing - Batch updates
+    
+    private var batchUpdates:Bool = false
     private var batchInitialCountOfCards:Int = 0
     private var batchDeltaCount:Int = 0
     
     public func beginUpdates() {
         
         assert(
-            batchCommits == false,
+            batchUpdates == false,
             "Unbalanced call to beginUpdates, all beginUpdates calls must be followed by a call to endUpdates"
         )
         
         batchInitialCountOfCards = countOfCards
         batchDeltaCount = 0
-        batchCommits = true
+        batchUpdates = true
         
         CATransaction.begin()
     }
@@ -653,7 +655,7 @@ open class KolodaView: UIView, DraggableCardDelegate {
     public func endUpdates() {
         
         assert(
-            batchCommits == true,
+            batchUpdates == true,
             "Unbalanced call to endUpdates, all endUpdates calls must follow a call to beginUpdates"
         )
         
@@ -664,7 +666,7 @@ open class KolodaView: UIView, DraggableCardDelegate {
             "Cards count after updates is not equal to data source count"
         )
         
-        batchCommits = false
+        batchUpdates = false
         batchDeltaCount = 0
         
         CATransaction.commit()
@@ -693,7 +695,7 @@ open class KolodaView: UIView, DraggableCardDelegate {
             )
         }
         
-        if !batchCommits {
+        if !batchUpdates {
             assert(
                 currentItemsCount + indexRange.count == countOfCards,
                 "Cards count after update is not equal to data source count"
@@ -737,7 +739,7 @@ open class KolodaView: UIView, DraggableCardDelegate {
         }
         animating = false
         
-        if !batchCommits {
+        if !batchUpdates {
             assert(
                 currentItemsCount - indexRange.count == countOfCards,
                 "Cards count after update is not equal to data source count"
