@@ -60,7 +60,9 @@ extension ViewController: KolodaViewDelegate {
         for i in 1...4 {
           dataSource.append(UIImage(named: "Card_like_\(i)")!)
         }
+        kolodaView.beginUpdates()
         kolodaView.insertCardAtIndexRange(position..<position + 4, animated: true)
+        kolodaView.endUpdates()
     }
     
     func koloda(_ koloda: KolodaView, didSelectCardAt index: Int) {
