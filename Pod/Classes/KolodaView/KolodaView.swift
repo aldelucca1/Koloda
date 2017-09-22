@@ -206,7 +206,11 @@ open class KolodaView: UIView, DraggableCardDelegate {
         scale.width = initialFrame.width / finalFrame.width
         scale.height = initialFrame.height / finalFrame.height
         
-        return (finalFrame, scale)
+        if #available(iOS 11, *) {
+            return (initialFrame, scale)
+        } else {
+            return (finalFrame, scale)
+        }
     }
     
     internal func moveOtherCardsWithPercentage(_ percentage: CGFloat) {
@@ -399,7 +403,7 @@ open class KolodaView: UIView, DraggableCardDelegate {
         visibleCards.append(lastCard)
     }
     
-    private func animateCardsAfterLoadingWithCompletion(_ completion: ((Void) -> Void)? = nil) {
+    private func animateCardsAfterLoadingWithCompletion(_ completion: (() -> Void)? = nil) {
         for (index, currentCard) in visibleCards.enumerated() {
             currentCard.removeAnimations()
             
