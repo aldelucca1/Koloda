@@ -275,7 +275,9 @@ public class DraggableCardView: UIView, UIGestureRecognizerDelegate {
         if let touchView = touch.view, let _ = touchView as? UIControl {
             return false
         }
-        return delegate?.card(cardShouldDrag: self) ?? true
+        
+        panGestureRecognizer.isEnabled = delegate?.card(cardShouldDrag: self) ?? true
+        return  true
     }
     
     @objc func tapRecognized(_ recogznier: UITapGestureRecognizer) {
@@ -343,14 +345,14 @@ public class DraggableCardView: UIView, UIGestureRecognizerDelegate {
         }
     }
     
-    private func animationPointForDirection(_ direction: SwipeResultDirection) -> CGPoint {
+    func animationPointForDirection(_ direction: SwipeResultDirection) -> CGPoint {
         let point = direction.point
         let animatePoint = CGPoint(x: point.x * 4, y: point.y * 4) //should be 2
         let retPoint = animatePoint.screenPointForSize(screenSize)
         return retPoint
     }
     
-    private func animationRotationForDirection(_ direction: SwipeResultDirection) -> CGFloat {
+    func animationRotationForDirection(_ direction: SwipeResultDirection) -> CGFloat {
         return CGFloat(direction.bearing / 2.0 - Double.pi / 4)
     }
     
@@ -413,7 +415,7 @@ public class DraggableCardView: UIView, UIGestureRecognizerDelegate {
         layer.pop_removeAllAnimations()
     }
     
-    func swipe(_ direction: SwipeResultDirection) {
+    func swipe(_ direction: SwipeResultDirection, completionHandler: @escaping () -> Void) {
         if !dragBegin {
             delegate?.card(self, wasSwipedIn: direction)
             
@@ -424,6 +426,7 @@ public class DraggableCardView: UIView, UIGestureRecognizerDelegate {
             swipePositionAnimation?.completionBlock = {
                 (_, _) in
                 self.removeFromSuperview()
+                completionHandler()
             }
             
             layer.pop_add(swipePositionAnimation, forKey: "swipePositionAnimation")
